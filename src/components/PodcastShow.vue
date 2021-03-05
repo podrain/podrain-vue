@@ -45,7 +45,7 @@
         >
           <div 
             class="p-3 relative bg-gray-700"
-            @click="$router.push(`/episodes/${ep._id}`)"
+            @click="showDescription(ep._id)"
           >
             <div v-if="ep.played" class="w-8 h-8 bg-yellow-500 absolute bottom-0 left-0 flex justify-center items-center">
               <font-awesome-icon icon="check" />
@@ -109,6 +109,16 @@
         Show More
       </button>
     </div>
+    <Modal
+      :showing="showingDescription"
+      @close="showingDescription = false"
+    >
+      <template v-slot:title><span class="text-white">{{ episodeTitle }}</span></template>
+      <main>
+        <div class="prose-sm prose-episode-details mt-2" v-html="episodeDescription"></div>
+        <div @click="showingDescription = false" class="text-white bg-green-500 w-full text-center rounded mt-3 p-2">Go Back</div>
+      </main>
+    </Modal>
   </div>
 </template>
 
@@ -119,8 +129,13 @@ import { DateTime } from 'luxon'
 import feedParser from 'https://jspm.dev/better-podcast-parser'
 import _ from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
+import Modal from './Modal.vue'
 
 export default {
+  components: {
+    Modal
+  },
+
   data() {
     return {
       podcast: {
@@ -133,6 +148,9 @@ export default {
       episodes: [],
       refreshing: false,
       deleting: false,
+      showingDescription: false,
+      episodeDescription: '',
+      episodeTitle: '',
     }
   },
 
@@ -244,6 +262,13 @@ export default {
     isPlaying(id) {
       return this.$store.getters.isPlaying(id)
     },
+
+    showDescription(id) {
+      let episode = this.episodes.filter(ep => ep._id == id)[0]
+      this.episodeTitle = episode.title
+      this.showingDescription = true
+      this.episodeDescription = episode.description
+    }
   },
 
   created() {
